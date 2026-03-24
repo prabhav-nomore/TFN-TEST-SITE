@@ -1,0 +1,52 @@
+{
+  "teams": [
+    {
+      "team_id": "T001",
+      "team_name": "Alpha",
+      "password_hash": "$2b$10$RyWbGmQmfYPFgrSyw8T0JeBv1mJrNKZezV2zjd0aBLmyIx.Ysqv8e"
+    },
+    {
+      "team_id": "T002",
+      "team_name": "Code",
+      "password_hash": "$2b$10$aVnOy51dmLFLnSi2wvDJjuCEdHH0bo1G8sL2pSpjzfn8KZ84pI0Cu"
+    },
+    {
+      "team_id": "T003",
+      "team_name": "Mystic",
+      "password_hash": "$2b$10$0psuHwEGjkWIHHDN3r3kJulcMz0jrakgpdFOvLMvSKsAgC2R3v8qm"
+    }
+  ],
+  "puzzles": [
+    {
+      "puzzle_id": "P001",
+      "puzzle_text": "Solve the riddle in the README",
+      "correct_answer": "42",
+      "reference_type": "text"
+    },
+    {
+      "puzzle_id": "P002",
+      "puzzle_text": "Find the hidden flag",
+      "correct_answer": "flag{h4ck3r}",
+      "reference_type": "text"
+    }
+  ],
+  "assignments": [],
+  "submissions": [],
+  "lifelines": [
+    {
+      "team_id": "T001",
+      "lifeline_remaining": 3,
+      "lifeline_used": 0
+    },
+    {
+      "team_id": "T002",
+      "lifeline_remaining": 3,
+      "lifeline_used": 0
+    },
+    {
+      "team_id": "T003",
+      "lifeline_remaining": 3,
+      "lifeline_used": 0
+    }
+  ]
+}
