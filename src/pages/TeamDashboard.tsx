@@ -181,6 +181,23 @@ export default function TeamDashboard() {
     }
   };
 
+  const handleSkip = async () => {
+    if (!confirm('Are you sure you want to skip this puzzle? You will receive a new random puzzle and won\'t get points for this one.')) return;
+    
+    setSubmitting(true);
+    try {
+      await fetch('/api/team/skip', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchStatus();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const useLifeline = async () => {
     if (!confirm('Are you sure you want to use a lifeline? This will temporarily disable browser restrictions.')) return;
     try {
@@ -294,7 +311,15 @@ export default function TeamDashboard() {
                 disabled={submitting || result === 'correct'}
               />
             )}
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={handleSkip}
+                disabled={submitting || result === 'correct'}
+                className="bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
+              >
+                Skip Puzzle
+              </button>
               <button
                 type="submit"
                 disabled={submitting || !answer.trim() || result === 'correct'}

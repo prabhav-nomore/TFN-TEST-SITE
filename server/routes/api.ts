@@ -99,17 +99,16 @@ router.get('/team/status', authenticate, async (req: any, res: any) => {
 
     // If no active assignment, assign a random puzzle
     if (!assignment) {
-      const { data: completedSubmissions } = await supabase
-        .from('submissions')
+      const { data: pastAssignments } = await supabase
+        .from('assignments')
         .select('puzzle_id')
-        .eq('team_id', teamId)
-        .eq('result', 'correct');
+        .eq('team_id', teamId);
 
-      const completedPuzzles = completedSubmissions?.map(s => s.puzzle_id) || [];
+      const usedPuzzles = pastAssignments?.map(a => a.puzzle_id) || [];
       
       let query = supabase.from('puzzles').select('*');
-      if (completedPuzzles.length > 0) {
-        query = query.not('puzzle_id', 'in', `(${completedPuzzles.join(',')})`);
+      if (usedPuzzles.length > 0) {
+        query = query.not('puzzle_id', 'in', `(${usedPuzzles.join(',')})`);
       }
       
       const { data: availablePuzzles } = await query;
@@ -225,6 +224,32 @@ router.post('/team/submit', authenticate, async (req: any, res: any) => {
     notifyAdmin('submission', submission);
 
     res.json({ correct: isCorrect, output: puzzle.reference_type !== 'text' ? output : undefined });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/team/skip', authenticate, async (req: any, res: any) => {
+  const teamId = req.user.teamId;
+  
+  try {
+    const { data: assignment } = await supabase
+      .from('assignments')
+      .select('*')
+      .eq('team_id', teamId)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (assignment) {
+      await supabase
+        .from('assignments')
+        .update({ status: 'expired' })
+        .eq('id', assignment.id);
+      
+      notifyAdmin('team_skipped', { teamId, puzzleId: assignment.puzzle_id });
+    }
+    
+    res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
