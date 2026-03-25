@@ -98,9 +98,14 @@ export default function TeamDashboard() {
   };
 
   useEffect(() => {
-    if (status?.assignment?.start_time) {
+    if (status?.assignment?.start_time && status?.serverNow) {
+      const clientNow = Date.now();
+      const offset = clientNow - status.serverNow;
+      
       const interval = setInterval(() => {
-        const elapsed = Date.now() - status.assignment.start_time;
+        const currentServerTime = Date.now() - offset;
+        const startTime = Number(status.assignment.start_time);
+        const elapsed = currentServerTime - startTime;
         const remaining = Math.max(0, 3600000 - elapsed); // 1 hour per puzzle
         setTimeLeft(remaining);
         if (remaining === 0) {

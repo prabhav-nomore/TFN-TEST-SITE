@@ -82,11 +82,20 @@ router.get('/team/status', authenticate, async (req: any, res: any) => {
       .eq('status', 'active')
       .maybeSingle();
 
-    const { data: lifeline } = await supabase
+    let { data: lifeline } = await supabase
       .from('lifelines')
       .select('*')
       .eq('team_id', teamId)
-      .single();
+      .maybeSingle();
+
+    if (!lifeline) {
+      const { data: newLifeline } = await supabase
+        .from('lifelines')
+        .insert([{ team_id: teamId, lifeline_remaining: 3, lifeline_used: 0 }])
+        .select()
+        .single();
+      lifeline = newLifeline;
+    }
 
     // If no active assignment, assign a random puzzle
     if (!assignment) {
@@ -137,7 +146,8 @@ router.get('/team/status', authenticate, async (req: any, res: any) => {
       res.json({
         assignment,
         puzzle,
-        lifeline
+        lifeline,
+        serverNow: Date.now()
       });
     } else {
       res.json({ message: 'No more puzzles available', completed: true });
@@ -224,11 +234,20 @@ router.post('/team/lifeline', authenticate, async (req: any, res: any) => {
   const teamId = req.user.teamId;
   
   try {
-    const { data: lifeline } = await supabase
+    let { data: lifeline } = await supabase
       .from('lifelines')
       .select('*')
       .eq('team_id', teamId)
-      .single();
+      .maybeSingle();
+
+    if (!lifeline) {
+      const { data: newLifeline } = await supabase
+        .from('lifelines')
+        .insert([{ team_id: teamId, lifeline_remaining: 3, lifeline_used: 0 }])
+        .select()
+        .single();
+      lifeline = newLifeline;
+    }
 
     if (lifeline && lifeline.lifeline_remaining > 0) {
       await supabase
