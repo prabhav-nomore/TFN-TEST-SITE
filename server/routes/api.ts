@@ -185,13 +185,25 @@ router.post('/team/submit', authenticate, async (req: any, res: any) => {
       // Execute code
       const tempDir = path.join(__dirname, '../../temp', teamId);
       await fs.ensureDir(tempDir);
+      
+      // Copy puzzle files to tempDir so user code can access them
+      const puzzleBankPath = path.join(__dirname, '../../server/puzzle_bank', assignment.puzzle_id);
+      if (await fs.pathExists(puzzleBankPath)) {
+        const files = await fs.readdir(puzzleBankPath);
+        for (const file of files) {
+          if (!file.startsWith('solution.') && !file.startsWith('answer.')) {
+            await fs.copy(path.join(puzzleBankPath, file), path.join(tempDir, file));
+          }
+        }
+      }
+
       const ext = puzzle.reference_type === 'python' ? '.py' : '.js';
       const filePath = path.join(tempDir, `submission${ext}`);
       await fs.writeFile(filePath, answer);
 
       try {
         const cmd = puzzle.reference_type === 'python' ? `python3 ${filePath}` : `node ${filePath}`;
-        const { stdout } = await execAsync(cmd, { timeout: 5000 });
+        const { stdout } = await execAsync(cmd, { cwd: tempDir, timeout: 5000 });
         output = stdout.trim();
         isCorrect = output === puzzle.correct_answer;
       } catch (err: any) {
@@ -458,13 +470,14 @@ router.post('/admin/sync-puzzle-bank', authenticate, isAdmin, async (req, res) =
 
         if (solutionFile) {
           const solutionPath = path.join(puzzleBankPath, folder, solutionFile);
+          const puzzleDir = path.join(puzzleBankPath, folder);
           if (solutionFile.endsWith('.py')) {
             referenceType = 'python';
-            const { stdout } = await execAsync(`python3 ${solutionPath}`);
+            const { stdout } = await execAsync(`python3 ${solutionPath}`, { cwd: puzzleDir });
             correctAnswer = stdout.trim();
           } else if (solutionFile.endsWith('.js')) {
             referenceType = 'javascript';
-            const { stdout } = await execAsync(`node ${solutionPath}`);
+            const { stdout } = await execAsync(`node ${solutionPath}`, { cwd: puzzleDir });
             correctAnswer = stdout.trim();
           } else {
             referenceType = 'text';
