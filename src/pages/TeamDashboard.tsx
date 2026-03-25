@@ -136,7 +136,10 @@ export default function TeamDashboard() {
         const remaining = Math.max(0, 3600000 - elapsed); // 1 hour per puzzle
         setTimeLeft(remaining);
         if (remaining === 0) {
-          fetchStatus(); // Refresh if expired
+          clearInterval(interval);
+          logout();
+          alert('Time is over. You have been logged out.');
+          window.location.href = '/';
         }
       }, 1000);
       return () => clearInterval(interval);
@@ -346,8 +349,9 @@ export default function TeamDashboard() {
               <button
                 type="button"
                 onClick={handleSkipClick}
-                disabled={submitting || result === 'correct'}
+                disabled={submitting || result === 'correct' || restrictionsDisabled}
                 className="bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
+                title={restrictionsDisabled ? "Cannot skip while lifeline is active" : "Skip Puzzle"}
               >
                 Skip Puzzle
               </button>
